@@ -1,0 +1,52 @@
+import pandas as pd
+import joblib
+from fastapi import FastAPI
+from pydantic import BaseModel
+import string
+from nltk.corpus import stopwords as nltk_stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.tokenize import word_tokenize
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from pymystem3 import Mystem
+
+def prep_text(sentence: str):
+    """
+    Функция выполняет предобработку текста на русском языке,
+    включая удаление пунктуации и стоп-слов, лемматизацию слов
+    """
+    russian_stop_words = nltk_stopwords.words('russian')
+    m = Mystem()
+    tokens = word_tokenize(sentence, language="russian")
+    tokens = [i for i in tokens if i not in string.punctuation]
+    tokens = [i for i in tokens if i.lower() not in russian_stop_words]
+    tokens = [m.lemmatize(i)[0] for i in tokens]
+    return tokens
+
+
+
+if __name__ == '__main__':
+    way = 'labeled.csv'
+    try:
+        df = pd.read_csv(way)
+    except Exception as e:
+        print(f'Ошибка {e}')
+
+    print('Данные подгружены')
+
+    base_model_pipeline = Pipeline([
+        ("vectorizer", TfidfVectorizer(tokenizer=lambda x: prep_text(x))),
+        ("model", LogisticRegression(C=1,
+                                     penalty='l2',
+                                     class_weight='balanced',
+                                     random_state=12345))
+    ]
+    )
+
+    print('Создался пайплайн')
+
+    # обучение пайплайна
+    base_model_pipeline.fit(df["comment"], df["toxic"])
+    joblib.dump(base_model_pipeline, "./base_model_pipeline.joblib")
+
+    print('Пайплайн обучился и успешно сохранен')
