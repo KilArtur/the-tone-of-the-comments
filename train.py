@@ -1,7 +1,5 @@
 import pandas as pd
 import joblib
-from fastapi import FastAPI
-from pydantic import BaseModel
 import string
 from nltk.corpus import stopwords as nltk_stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,8 +13,6 @@ def prep_text(sentence: str):
     Функция выполняет предобработку текста на русском языке,
     включая удаление пунктуации и стоп-слов, лемматизацию слов
     """
-    russian_stop_words = nltk_stopwords.words('russian')
-    m = Mystem()
     tokens = word_tokenize(sentence, language="russian")
     tokens = [i for i in tokens if i not in string.punctuation]
     tokens = [i for i in tokens if i.lower() not in russian_stop_words]
@@ -34,8 +30,11 @@ if __name__ == '__main__':
 
     print('Данные подгружены')
 
+    russian_stop_words = nltk_stopwords.words('russian')
+    m = Mystem()
+
     base_model_pipeline = Pipeline([
-        ("vectorizer", TfidfVectorizer(tokenizer=lambda x: prep_text(x))),
+        ("vectorizer", TfidfVectorizer(tokenizer= prep_text)),
         ("model", LogisticRegression(C=1,
                                      penalty='l2',
                                      class_weight='balanced',
