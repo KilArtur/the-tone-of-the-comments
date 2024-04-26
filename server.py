@@ -1,5 +1,6 @@
 import joblib
 from fastapi import FastAPI
+import uvicorn
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -17,3 +18,5 @@ def predict(text: ToxicComments):
     prediction = base_model_pipeline.predict([comment]).tolist()[0]
     return {"toxic": prediction}
 
+if __name__ == '__main__':
+    uvicorn.run(app, host='127.0.0.1', port=80)
