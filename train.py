@@ -1,4 +1,5 @@
 import pandas as pd
+import nltk
 import joblib
 import string
 from nltk.corpus import stopwords as nltk_stopwords
@@ -25,8 +26,13 @@ if __name__ == '__main__':
     way = 'labeled.csv'
     try:
         df = pd.read_csv(way)
+        nltk.download('stopwords')
+        nltk.download('punkt')
     except Exception as e:
         print(f'Ошибка {e}')
+
+    nltk.download('stopwords')
+
 
     print('Данные подгружены')
 
@@ -45,7 +51,7 @@ if __name__ == '__main__':
     print('Создался пайплайн')
 
     # обучение пайплайна
-    base_model_pipeline.fit(df["comment"], df["toxic"])
+    base_model_pipeline.fit(df["comment"][:10], df["toxic"][:10])
     joblib.dump(base_model_pipeline, "./base_model_pipeline.joblib")
 
     print('Пайплайн обучился и успешно сохранен')
